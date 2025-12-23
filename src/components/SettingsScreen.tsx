@@ -1,0 +1,254 @@
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import Icon from '@/components/ui/icon';
+import { Question } from '@/types/game';
+import { toast } from 'sonner';
+
+interface SettingsScreenProps {
+  questions: Question[];
+  godMode: boolean;
+  onQuestionsChange: (questions: Question[]) => void;
+  onGodModeChange: (enabled: boolean) => void;
+  onBack: () => void;
+}
+
+export default function SettingsScreen({
+  questions,
+  godMode,
+  onQuestionsChange,
+  onGodModeChange,
+  onBack
+}: SettingsScreenProps) {
+  const [editingQuestions, setEditingQuestions] = useState<Question[]>(questions);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const handleQuestionChange = (index: number, field: keyof Question, value: any) => {
+    const updated = [...editingQuestions];
+    updated[index] = { ...updated[index], [field]: value };
+    setEditingQuestions(updated);
+  };
+
+  const handleAnswerChange = (questionIndex: number, answerIndex: number, value: string) => {
+    const updated = [...editingQuestions];
+    const answers = [...updated[questionIndex].answers];
+    answers[answerIndex] = value;
+    updated[questionIndex] = { ...updated[questionIndex], answers };
+    setEditingQuestions(updated);
+  };
+
+  const addQuestion = () => {
+    const newQuestion: Question = {
+      id: editingQuestions.length + 1,
+      question: 'Новый вопрос',
+      answers: ['Вариант A', 'Вариант B', 'Вариант C', 'Вариант D'],
+      correctAnswer: 0,
+      prize: editingQuestions.length > 0 
+        ? editingQuestions[editingQuestions.length - 1].prize * 2 
+        : 100
+    };
+    setEditingQuestions([...editingQuestions, newQuestion]);
+    setEditingIndex(editingQuestions.length);
+  };
+
+  const deleteQuestion = (index: number) => {
+    if (editingQuestions.length <= 1) {
+      toast.error('Должен остаться хотя бы один вопрос');
+      return;
+    }
+    const updated = editingQuestions.filter((_, i) => i !== index);
+    setEditingQuestions(updated);
+    if (editingIndex === index) {
+      setEditingIndex(null);
+    }
+  };
+
+  const saveChanges = () => {
+    onQuestionsChange(editingQuestions);
+    toast.success('Настройки сохранены!');
+    onBack();
+  };
+
+  const cancelChanges = () => {
+    setEditingQuestions(questions);
+    onBack();
+  };
+
+  return (
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8 animate-fade-in">
+          <h1 className="text-3xl md:text-4xl font-display font-bold text-primary flex items-center gap-3">
+            <Icon name="Settings" size={40} className="text-gold" />
+            Настройки игры
+          </h1>
+          <Button onClick={cancelChanges} variant="ghost" size="lg">
+            <Icon name="X" size={20} className="mr-2" />
+            Закрыть
+          </Button>
+        </div>
+
+        <div className="space-y-6">
+          <Card className="p-6 bg-card/95 backdrop-blur animate-fade-in">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h2 className="text-xl font-display font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <Icon name="Crown" size={24} className="text-gold" />
+                  Режим Бога
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Игра не заканчивается при неправильном ответе, подсказки бесконечны
+                </p>
+              </div>
+              <Switch
+                checked={godMode}
+                onCheckedChange={onGodModeChange}
+                className="data-[state=checked]:bg-gold"
+              />
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-card/95 backdrop-blur">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-display font-semibold text-foreground flex items-center gap-2">
+                <Icon name="HelpCircle" size={24} className="text-primary" />
+                Вопросы ({editingQuestions.length})
+              </h2>
+              <Button onClick={addQuestion} size="sm" className="font-display">
+                <Icon name="Plus" size={18} className="mr-2" />
+                Добавить вопрос
+              </Button>
+            </div>
+
+            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+              {editingQuestions.map((q, qIndex) => (
+                <Card 
+                  key={qIndex} 
+                  className={`p-4 transition-all duration-300 ${
+                    editingIndex === qIndex 
+                      ? 'border-2 border-primary shadow-lg' 
+                      : 'border border-border hover:border-primary/50'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <button
+                      onClick={() => setEditingIndex(editingIndex === qIndex ? null : qIndex)}
+                      className="flex-1 text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="font-display font-bold text-gold text-lg">
+                          #{qIndex + 1}
+                        </span>
+                        <span className="font-medium text-foreground">
+                          {q.question}
+                        </span>
+                        <span className="ml-auto text-sm font-display text-gold">
+                          {q.prize.toLocaleString()} ₽
+                        </span>
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-2 ml-4">
+                      <Button
+                        onClick={() => setEditingIndex(editingIndex === qIndex ? null : qIndex)}
+                        variant="ghost"
+                        size="sm"
+                      >
+                        <Icon 
+                          name={editingIndex === qIndex ? "ChevronUp" : "ChevronDown"} 
+                          size={18} 
+                        />
+                      </Button>
+                      <Button
+                        onClick={() => deleteQuestion(qIndex)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Icon name="Trash2" size={18} />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {editingIndex === qIndex && (
+                    <div className="space-y-4 animate-accordion-down">
+                      <div>
+                        <Label htmlFor={`question-${qIndex}`} className="text-foreground">
+                          Текст вопроса
+                        </Label>
+                        <Input
+                          id={`question-${qIndex}`}
+                          value={q.question}
+                          onChange={(e) => handleQuestionChange(qIndex, 'question', e.target.value)}
+                          className="mt-2 font-medium"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-foreground mb-2 block">Варианты ответов</Label>
+                        <div className="space-y-2">
+                          {q.answers.map((answer, aIndex) => (
+                            <div key={aIndex} className="flex items-center gap-3">
+                              <span className="font-display font-bold text-gold w-8">
+                                {['A', 'B', 'C', 'D'][aIndex]}:
+                              </span>
+                              <Input
+                                value={answer}
+                                onChange={(e) => handleAnswerChange(qIndex, aIndex, e.target.value)}
+                                className="flex-1"
+                              />
+                              <button
+                                onClick={() => handleQuestionChange(qIndex, 'correctAnswer', aIndex)}
+                                className={`px-3 py-2 rounded-lg font-medium text-sm transition-all ${
+                                  q.correctAnswer === aIndex
+                                    ? 'bg-green-600 text-white'
+                                    : 'bg-muted text-muted-foreground hover:bg-muted/70'
+                                }`}
+                              >
+                                {q.correctAnswer === aIndex ? (
+                                  <Icon name="Check" size={18} />
+                                ) : (
+                                  'Верный'
+                                )}
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`prize-${qIndex}`} className="text-foreground">
+                          Сумма выигрыша (₽)
+                        </Label>
+                        <Input
+                          id={`prize-${qIndex}`}
+                          type="number"
+                          value={q.prize}
+                          onChange={(e) => handleQuestionChange(qIndex, 'prize', parseInt(e.target.value) || 0)}
+                          className="mt-2 font-display font-bold"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </Card>
+
+          <div className="flex gap-4 justify-end">
+            <Button onClick={cancelChanges} variant="outline" size="lg" className="font-display">
+              <Icon name="X" size={20} className="mr-2" />
+              Отмена
+            </Button>
+            <Button onClick={saveChanges} size="lg" className="font-display">
+              <Icon name="Save" size={20} className="mr-2" />
+              Сохранить и вернуться
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
