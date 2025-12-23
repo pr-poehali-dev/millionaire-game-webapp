@@ -117,7 +117,8 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     
     setAwaitingConfirmation(false);
     setShowResult(true);
-    const correct = selectedAnswer === currentQuestion.correctAnswer;
+    const isFinalQuestion = currentQuestionIndex === questions.length - 1;
+    const correct = isFinalQuestion ? true : (selectedAnswer === currentQuestion.correctAnswer);
     setIsCorrect(correct);
 
     if (correct) {
@@ -220,13 +221,14 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
 
   const getAnswerClass = (index: number) => {
     const baseClass = 'w-full p-4 text-left text-lg font-medium transition-all duration-300 border-2 rounded-lg';
+    const isFinalQuestion = currentQuestionIndex === questions.length - 1;
     
     if (removedAnswers.includes(index)) {
       return `${baseClass} opacity-30 cursor-not-allowed bg-muted/20 border-muted/30`;
     }
     
     if (showResult) {
-      if (index === currentQuestion.correctAnswer) {
+      if (isFinalQuestion || index === currentQuestion.correctAnswer) {
         return `${baseClass} bg-green-600 border-green-400 text-white animate-pulse-glow`;
       }
       if (index === selectedAnswer && !isCorrect) {
