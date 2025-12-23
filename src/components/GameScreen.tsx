@@ -98,22 +98,6 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
         setGuaranteedWinnings(currentQuestion.prize);
         toast.success(`💰 Несгораемая сумма: ${currentQuestion.prize.toLocaleString()} ₽`, { duration: 3000 });
       }
-      
-      setTimeout(() => {
-        if (currentQuestionIndex < questions.length - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
-          setSelectedAnswer(null);
-          setShowResult(false);
-          setRemovedAnswers([]);
-        } else {
-          setGameOver(true);
-          if (currentQuestion.congratulation) {
-            toast.success(currentQuestion.congratulation, { duration: 5000 });
-          } else {
-            toast.success('🎉 Поздравляем! Вы выиграли миллион!');
-          }
-        }
-      }, 10000);
     } else {
       if (audioFiles.wrongAnswer) {
         playAudio(audioFiles.wrongAnswer);
@@ -347,6 +331,33 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
                   >
                     <Icon name="Check" size={28} className="mr-2" />
                     Подтвердить ответ
+                  </Button>
+                </div>
+              )}
+              
+              {showResult && isCorrect && (
+                <div className="mt-6 flex justify-center animate-fade-in">
+                  <Button
+                    onClick={() => {
+                      if (currentQuestionIndex < questions.length - 1) {
+                        setCurrentQuestionIndex(currentQuestionIndex + 1);
+                        setSelectedAnswer(null);
+                        setShowResult(false);
+                        setRemovedAnswers([]);
+                      } else {
+                        setGameOver(true);
+                        if (currentQuestion.congratulation) {
+                          toast.success(currentQuestion.congratulation, { duration: 5000 });
+                        } else {
+                          toast.success('🎉 Поздравляем! Вы выиграли миллион!');
+                        }
+                      }
+                    }}
+                    size="lg"
+                    className="font-display text-xl px-8 py-6 bg-green-600 text-white hover:bg-green-700 animate-pulse-glow"
+                  >
+                    <Icon name="ArrowRight" size={28} className="mr-2" />
+                    {currentQuestionIndex < questions.length - 1 ? 'Следующий вопрос' : 'Завершить игру'}
                   </Button>
                 </div>
               )}
