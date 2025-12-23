@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
 import { Question } from '@/types/game';
 import { toast } from 'sonner';
@@ -229,6 +230,22 @@ export default function SettingsScreen({
                           onChange={(e) => handleQuestionChange(qIndex, 'prize', parseInt(e.target.value) || 0)}
                           className="mt-2 font-display font-bold"
                         />
+                      </div>
+
+                      <div>
+                        <Label htmlFor={`congratulation-${qIndex}`} className="text-foreground">
+                          Поздравление (необязательно)
+                        </Label>
+                        <Textarea
+                          id={`congratulation-${qIndex}`}
+                          value={q.congratulation || ''}
+                          onChange={(e) => handleQuestionChange(qIndex, 'congratulation', e.target.value || undefined)}
+                          placeholder="Введите уникальное поздравление для этого вопроса..."
+                          className="mt-2 min-h-[80px]"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Появится при правильном ответе на этот вопрос
+                        </p>
                       </div>
                     </div>
                   )}

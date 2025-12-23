@@ -4,6 +4,7 @@ export interface Question {
   answers: string[];
   correctAnswer: number;
   prize: number;
+  congratulation?: string;
 }
 
 export interface GameState {

@@ -18,6 +18,7 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
   const [isCorrect, setIsCorrect] = useState(false);
   const [gameOver, setGameOver] = useState(false);
   const [totalWinnings, setTotalWinnings] = useState(0);
+  const [guaranteedWinnings, setGuaranteedWinnings] = useState(0);
   
   const [lifelines, setLifelines] = useState<Lifeline>({
     fiftyFifty: true,
@@ -40,6 +41,16 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
 
     if (correct) {
       setTotalWinnings(currentQuestion.prize);
+      
+      if (currentQuestion.congratulation) {
+        toast.success(currentQuestion.congratulation, { duration: 4000 });
+      }
+      
+      if (currentQuestionIndex === 4 || currentQuestionIndex === 9) {
+        setGuaranteedWinnings(currentQuestion.prize);
+        toast.success(`💰 Несгораемая сумма: ${currentQuestion.prize.toLocaleString()} ₽`, { duration: 3000 });
+      }
+      
       setTimeout(() => {
         if (currentQuestionIndex < questions.length - 1) {
           setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -48,7 +59,11 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
           setRemovedAnswers([]);
         } else {
           setGameOver(true);
-          toast.success('🎉 Поздравляем! Вы выиграли миллион!');
+          if (currentQuestion.congratulation) {
+            toast.success(currentQuestion.congratulation, { duration: 5000 });
+          } else {
+            toast.success('🎉 Поздравляем! Вы выиграли миллион!');
+          }
         }
       }, 2000);
     } else {
@@ -61,7 +76,9 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
       } else {
         setTimeout(() => {
           setGameOver(true);
-          toast.error('Игра окончена!');
+          const finalWinnings = guaranteedWinnings;
+          setTotalWinnings(finalWinnings);
+          toast.error(`Игра окончена! Вы уносите: ${finalWinnings.toLocaleString()} ₽`);
         }, 2000);
       }
     }
@@ -104,6 +121,7 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
     setShowResult(false);
     setGameOver(false);
     setTotalWinnings(0);
+    setGuaranteedWinnings(0);
     setLifelines({ fiftyFifty: true, phoneCall: true, audienceHelp: true });
     setRemovedAnswers([]);
   };
@@ -307,6 +325,7 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
                 {prizeList.map((prize, index) => {
                   const isCurrentQuestion = index === currentQuestionIndex;
                   const isPassed = index < currentQuestionIndex;
+                  const isGuaranteed = index === 4 || index === 9;
                   
                   return (
                     <div
@@ -317,10 +336,13 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
                           : isPassed
                           ? 'bg-green-600/30 text-green-200 border border-green-500/50'
                           : 'bg-muted/30 text-muted-foreground'
-                      }`}
+                      } ${isGuaranteed ? 'border-2 border-gold' : ''}`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="text-sm">{index + 1}</span>
+                        <span className="text-sm flex items-center gap-1">
+                          {index + 1}
+                          {isGuaranteed && <Icon name="Shield" size={14} className="text-gold" />}
+                        </span>
                         <span className={isCurrentQuestion ? 'text-lg' : ''}>
                           {prize.toLocaleString()} ₽
                         </span>
