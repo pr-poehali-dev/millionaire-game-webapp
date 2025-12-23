@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { Question, Lifeline } from '@/types/game';
 import { toast } from 'sonner';
@@ -69,7 +68,7 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
   };
 
   const handleFiftyFifty = () => {
-    if (!lifelines.fiftyFifty || showResult) return;
+    if ((!lifelines.fiftyFifty && !godMode) || showResult) return;
     
     const incorrectAnswers = currentQuestion.answers
       .map((_, index) => index)
@@ -77,26 +76,37 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
     
     const toRemove = incorrectAnswers.sort(() => 0.5 - Math.random()).slice(0, 2);
     setRemovedAnswers(toRemove);
-    setLifelines({ ...lifelines, fiftyFifty: false });
-    toast.success('50/50 использовано!');
+    
+    if (godMode) {
+      toast.success('50/50 использовано! (Режим Бога: доступно снова)');
+    } else {
+      setLifelines({ ...lifelines, fiftyFifty: false });
+      toast.success('50/50 использовано!');
+    }
   };
 
   const handlePhoneCall = () => {
-    if (!lifelines.phoneCall || showResult) return;
+    if ((!lifelines.phoneCall && !godMode) || showResult) return;
     
     const confidence = Math.random() > 0.3 ? 'уверен' : 'думаю';
     const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
     toast.success(`Друг ${confidence}, что правильный ответ: ${answerLabel}`);
-    setLifelines({ ...lifelines, phoneCall: false });
+    
+    if (!godMode) {
+      setLifelines({ ...lifelines, phoneCall: false });
+    }
   };
 
   const handleAudienceHelp = () => {
-    if (!lifelines.audienceHelp || showResult) return;
+    if ((!lifelines.audienceHelp && !godMode) || showResult) return;
     
     const percentage = 55 + Math.floor(Math.random() * 30);
     const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
     toast.success(`${percentage}% зрителей выбрали ответ ${answerLabel}`);
-    setLifelines({ ...lifelines, audienceHelp: false });
+    
+    if (!godMode) {
+      setLifelines({ ...lifelines, audienceHelp: false });
+    }
   };
 
   const resetGame = () => {
@@ -114,7 +124,6 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
     const bgGradient = 'bg-gradient-to-r from-blue-900/80 via-blue-800/80 to-blue-900/80';
     const border = 'border-2 border-blue-400/40';
     const shape = 'rounded-none';
-    const clipPath = 'clip-answer';
     
     if (removedAnswers.includes(index)) {
       return `${baseClass} ${shape} opacity-20 cursor-not-allowed bg-gray-800/40 border-gray-600/30`;
@@ -232,138 +241,139 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
             </Button>
           </div>
 
-        <div className="grid lg:grid-cols-[1fr_280px] gap-8">
-          <div className="space-y-8">
-            <div className="bg-gradient-to-br from-blue-950/50 to-blue-900/50 backdrop-blur-xl rounded-xl p-8 border border-blue-400/20 shadow-2xl animate-fade-in">
-              <div className="text-center mb-8">
-                <div className="inline-block bg-gradient-to-r from-gold via-yellow-400 to-gold text-[#0a0e27] px-6 py-2 rounded-full font-display font-bold text-sm mb-4" style={{
-                  boxShadow: '0 0 20px rgba(255, 215, 0, 0.4)'
-                }}>
-                  Вопрос {currentQuestionIndex + 1} из {questions.length}
-                </div>
-              </div>
-              
-              <h2 className="text-xl md:text-2xl font-display font-semibold mb-10 text-white text-center leading-relaxed px-4">
-                {currentQuestion.question}
-              </h2>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {currentQuestion.answers.map((answer, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleAnswerClick(index)}
-                    disabled={showResult || removedAnswers.includes(index)}
-                    className={getAnswerClass(index)}
-                    style={{
-                      clipPath: 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)'
-                    }}
-                  >
-                    <span className="font-display font-bold mr-3 text-gold text-lg">
-                      {['A', 'B', 'C', 'D'][index]}:
-                    </span>
-                    <span className="text-white">{answer}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleFiftyFifty}
-                disabled={(!lifelines.fiftyFifty && !godMode) || showResult}
-                className={`group relative w-20 h-20 rounded-full transition-all duration-300 ${
-                  lifelines.fiftyFifty || godMode
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 hover:scale-110 hover:shadow-[0_0_30px_rgba(249,115,22,0.6)]'
-                    : 'bg-gray-700/50 opacity-40 cursor-not-allowed'
-                }`}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">50:50</span>
-                </div>
-                {godMode && !lifelines.fiftyFifty && (
-                  <div className="absolute -top-1 -right-1 bg-gold rounded-full p-1">
-                    <Icon name="Infinity" size={12} />
+          <div className="grid lg:grid-cols-[1fr_280px] gap-8">
+            <div className="space-y-8">
+              <div className="bg-gradient-to-br from-blue-950/50 to-blue-900/50 backdrop-blur-xl rounded-xl p-8 border border-blue-400/20 shadow-2xl animate-fade-in">
+                <div className="text-center mb-8">
+                  <div className="inline-block bg-gradient-to-r from-gold via-yellow-400 to-gold text-[#0a0e27] px-6 py-2 rounded-full font-display font-bold text-sm mb-4" style={{
+                    boxShadow: '0 0 20px rgba(255, 215, 0, 0.4)'
+                  }}>
+                    Вопрос {currentQuestionIndex + 1} из {questions.length}
                   </div>
-                )}
-              </button>
-              
-              <button
-                onClick={handlePhoneCall}
-                disabled={(!lifelines.phoneCall && !godMode) || showResult}
-                className={`group relative w-20 h-20 rounded-full transition-all duration-300 ${
-                  lifelines.phoneCall || godMode
-                    ? 'bg-gradient-to-br from-green-500 to-green-600 hover:scale-110 hover:shadow-[0_0_30px_rgba(34,197,94,0.6)]'
-                    : 'bg-gray-700/50 opacity-40 cursor-not-allowed'
-                }`}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Icon name="Phone" size={28} className="text-white" />
                 </div>
-                {godMode && !lifelines.phoneCall && (
-                  <div className="absolute -top-1 -right-1 bg-gold rounded-full p-1">
-                    <Icon name="Infinity" size={12} />
-                  </div>
-                )}
-              </button>
-              
-              <button
-                onClick={handleAudienceHelp}
-                disabled={(!lifelines.audienceHelp && !godMode) || showResult}
-                className={`group relative w-20 h-20 rounded-full transition-all duration-300 ${
-                  lifelines.audienceHelp || godMode
-                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:scale-110 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)]'
-                    : 'bg-gray-700/50 opacity-40 cursor-not-allowed'
-                }`}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Icon name="Users" size={28} className="text-white" />
-                </div>
-                {godMode && !lifelines.audienceHelp && (
-                  <div className="absolute -top-1 -right-1 bg-gold rounded-full p-1">
-                    <Icon name="Infinity" size={12} />
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
+                
+                <h2 className="text-xl md:text-2xl font-display font-semibold mb-10 text-white text-center leading-relaxed px-4">
+                  {currentQuestion.question}
+                </h2>
 
-          <div className="lg:block">
-            <div className="bg-gradient-to-br from-blue-950/60 to-blue-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/20 shadow-2xl sticky top-8">
-              <div className="space-y-1.5">
-                {prizeList.slice().reverse().map((prize, reverseIndex) => {
-                  const index = prizeList.length - 1 - reverseIndex;
-                  const isCurrentQuestion = index === currentQuestionIndex;
-                  const isPassed = index < currentQuestionIndex;
-                  const isMilestone = [4, 9, 14].includes(index);
-                  
-                  return (
-                    <div
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {currentQuestion.answers.map((answer, index) => (
+                    <button
                       key={index}
-                      className={`relative px-4 py-2.5 font-display font-bold text-sm transition-all duration-500 ${
-                        isCurrentQuestion
-                          ? 'bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 text-white scale-105 shadow-[0_0_20px_rgba(249,115,22,0.6)]'
-                          : isPassed
-                          ? 'bg-gradient-to-r from-gray-700/60 to-gray-600/60 text-gray-400'
-                          : 'bg-gradient-to-r from-blue-900/40 to-blue-800/40 text-blue-200'
-                      } ${isMilestone ? 'border-2 border-gold/50' : ''}`}
+                      onClick={() => handleAnswerClick(index)}
+                      disabled={showResult || removedAnswers.includes(index)}
+                      className={getAnswerClass(index)}
                       style={{
-                        clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
+                        clipPath: 'polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%)'
                       }}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className={`${isCurrentQuestion ? 'text-base' : 'text-xs'} ${isPassed ? 'line-through' : ''}`}>
-                          {index + 1}
-                        </span>
-                        <span className={`${isCurrentQuestion ? 'text-base tracking-wide' : 'text-xs'} ${isMilestone ? 'text-gold' : ''}`}>
-                          {prize.toLocaleString()} ₽
-                        </span>
-                      </div>
-                      {isMilestone && !isPassed && (
-                        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-gold rounded-full"></div>
-                      )}
+                      <span className="font-display font-bold mr-3 text-gold text-lg">
+                        {['A', 'B', 'C', 'D'][index]}:
+                      </span>
+                      <span className="text-white">{answer}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={handleFiftyFifty}
+                  disabled={(!lifelines.fiftyFifty && !godMode) || showResult}
+                  className={`group relative w-20 h-20 rounded-full transition-all duration-300 ${
+                    lifelines.fiftyFifty || godMode
+                      ? 'bg-gradient-to-br from-orange-500 to-orange-600 hover:scale-110 hover:shadow-[0_0_30px_rgba(249,115,22,0.6)]'
+                      : 'bg-gray-700/50 opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">50:50</span>
+                  </div>
+                  {godMode && !lifelines.fiftyFifty && (
+                    <div className="absolute -top-1 -right-1 bg-gold rounded-full p-1">
+                      <Icon name="Infinity" size={12} />
                     </div>
-                  );
-                })}
+                  )}
+                </button>
+                
+                <button
+                  onClick={handlePhoneCall}
+                  disabled={(!lifelines.phoneCall && !godMode) || showResult}
+                  className={`group relative w-20 h-20 rounded-full transition-all duration-300 ${
+                    lifelines.phoneCall || godMode
+                      ? 'bg-gradient-to-br from-green-500 to-green-600 hover:scale-110 hover:shadow-[0_0_30px_rgba(34,197,94,0.6)]'
+                      : 'bg-gray-700/50 opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Icon name="Phone" size={28} className="text-white" />
+                  </div>
+                  {godMode && !lifelines.phoneCall && (
+                    <div className="absolute -top-1 -right-1 bg-gold rounded-full p-1">
+                      <Icon name="Infinity" size={12} />
+                    </div>
+                  )}
+                </button>
+                
+                <button
+                  onClick={handleAudienceHelp}
+                  disabled={(!lifelines.audienceHelp && !godMode) || showResult}
+                  className={`group relative w-20 h-20 rounded-full transition-all duration-300 ${
+                    lifelines.audienceHelp || godMode
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 hover:scale-110 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)]'
+                      : 'bg-gray-700/50 opacity-40 cursor-not-allowed'
+                  }`}
+                >
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Icon name="Users" size={28} className="text-white" />
+                  </div>
+                  {godMode && !lifelines.audienceHelp && (
+                    <div className="absolute -top-1 -right-1 bg-gold rounded-full p-1">
+                      <Icon name="Infinity" size={12} />
+                    </div>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="lg:block">
+              <div className="bg-gradient-to-br from-blue-950/60 to-blue-900/60 backdrop-blur-xl rounded-xl p-4 border border-blue-400/20 shadow-2xl sticky top-8">
+                <div className="space-y-1.5">
+                  {prizeList.slice().reverse().map((prize, reverseIndex) => {
+                    const index = prizeList.length - 1 - reverseIndex;
+                    const isCurrentQuestion = index === currentQuestionIndex;
+                    const isPassed = index < currentQuestionIndex;
+                    const isMilestone = [4, 9, 14].includes(index);
+                    
+                    return (
+                      <div
+                        key={index}
+                        className={`relative px-4 py-2.5 font-display font-bold text-sm transition-all duration-500 ${
+                          isCurrentQuestion
+                            ? 'bg-gradient-to-r from-orange-500 via-orange-400 to-orange-500 text-white scale-105 shadow-[0_0_20px_rgba(249,115,22,0.6)]'
+                            : isPassed
+                            ? 'bg-gradient-to-r from-gray-700/60 to-gray-600/60 text-gray-400'
+                            : 'bg-gradient-to-r from-blue-900/40 to-blue-800/40 text-blue-200'
+                        } ${isMilestone ? 'border-2 border-gold/50' : ''}`}
+                        style={{
+                          clipPath: 'polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%)'
+                        }}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`${isCurrentQuestion ? 'text-base' : 'text-xs'} ${isPassed ? 'line-through' : ''}`}>
+                            {index + 1}
+                          </span>
+                          <span className={`${isCurrentQuestion ? 'text-base tracking-wide' : 'text-xs'} ${isMilestone ? 'text-gold' : ''}`}>
+                            {prize.toLocaleString()} ₽
+                          </span>
+                        </div>
+                        {isMilestone && !isPassed && (
+                          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 bg-gold rounded-full"></div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
