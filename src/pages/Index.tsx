@@ -115,7 +115,6 @@ export default function Index() {
   const [screen, setScreen] = useState<'game' | 'settings'>('game');
   const [questions, setQuestions] = useState<Question[]>(defaultQuestions);
   const [godMode, setGodMode] = useState(false);
-  const [gameTitle, setGameTitle] = useState('Кто хочет стать миллионером?');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-card to-background">
@@ -123,17 +122,14 @@ export default function Index() {
         <GameScreen 
           questions={questions}
           godMode={godMode}
-          gameTitle={gameTitle}
           onOpenSettings={() => setScreen('settings')}
         />
       ) : (
         <SettingsScreen
           questions={questions}
           godMode={godMode}
-          gameTitle={gameTitle}
           onQuestionsChange={setQuestions}
           onGodModeChange={setGodMode}
-          onGameTitleChange={setGameTitle}
           onBack={() => setScreen('game')}
         />
       )}
