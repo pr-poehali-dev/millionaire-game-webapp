@@ -12,9 +12,11 @@ import { toast } from 'sonner';
 interface SettingsScreenProps {
   questions: Question[];
   godMode: boolean;
+  infiniteHints: boolean;
   gameTitle: string;
   onQuestionsChange: (questions: Question[]) => void;
   onGodModeChange: (enabled: boolean) => void;
+  onInfiniteHintsChange: (enabled: boolean) => void;
   onGameTitleChange: (title: string) => void;
   onBack: () => void;
 }
@@ -22,9 +24,11 @@ interface SettingsScreenProps {
 export default function SettingsScreen({
   questions,
   godMode,
+  infiniteHints,
   gameTitle,
   onQuestionsChange,
   onGodModeChange,
+  onInfiniteHintsChange,
   onGameTitleChange,
   onBack
 }: SettingsScreenProps) {
@@ -116,21 +120,40 @@ export default function SettingsScreen({
           </Card>
 
           <Card className="p-6 bg-card/95 backdrop-blur animate-fade-in">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h2 className="text-xl font-display font-semibold text-foreground mb-2 flex items-center gap-2">
-                  <Icon name="Crown" size={24} className="text-gold" />
-                  Режим Бога
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Игра не заканчивается при неправильном ответе, подсказки бесконечны
-                </p>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h2 className="text-xl font-display font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <Icon name="Crown" size={24} className="text-gold" />
+                    Режим Бога
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Игра не заканчивается при неправильном ответе
+                  </p>
+                </div>
+                <Switch
+                  checked={godMode}
+                  onCheckedChange={onGodModeChange}
+                  className="data-[state=checked]:bg-gold"
+                />
               </div>
-              <Switch
-                checked={godMode}
-                onCheckedChange={onGodModeChange}
-                className="data-[state=checked]:bg-gold"
-              />
+
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h2 className="text-xl font-display font-semibold text-foreground mb-2 flex items-center gap-2">
+                    <Icon name="Sparkles" size={24} className="text-secondary" />
+                    Бесконечные подсказки
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Подсказки не заканчиваются и можно использовать сколько угодно раз
+                  </p>
+                </div>
+                <Switch
+                  checked={infiniteHints}
+                  onCheckedChange={onInfiniteHintsChange}
+                  className="data-[state=checked]:bg-secondary"
+                />
+              </div>
             </div>
           </Card>
 

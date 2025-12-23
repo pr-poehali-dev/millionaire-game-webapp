@@ -8,11 +8,12 @@ import { toast } from 'sonner';
 interface GameScreenProps {
   questions: Question[];
   godMode: boolean;
+  infiniteHints: boolean;
   gameTitle: string;
   onOpenSettings: () => void;
 }
 
-export default function GameScreen({ questions, godMode, gameTitle, onOpenSettings }: GameScreenProps) {
+export default function GameScreen({ questions, godMode, infiniteHints, gameTitle, onOpenSettings }: GameScreenProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -28,9 +29,25 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
   });
   
   const [removedAnswers, setRemovedAnswers] = useState<number[]>([]);
+  const [visibleAnswers, setVisibleAnswers] = useState<boolean[]>([false, false, false, false]);
 
   const currentQuestion = questions[currentQuestionIndex];
   const prizeList = questions.map(q => q.prize);
+
+  useEffect(() => {
+    setVisibleAnswers([false, false, false, false]);
+    const timers = currentQuestion.answers.map((_, index) => 
+      setTimeout(() => {
+        setVisibleAnswers(prev => {
+          const newVisible = [...prev];
+          newVisible[index] = true;
+          return newVisible;
+        });
+      }, index * 1000)
+    );
+    
+    return () => timers.forEach(timer => clearTimeout(timer));
+  }, [currentQuestionIndex, currentQuestion]);
 
   const handleAnswerClick = (answerIndex: number) => {
     if (showResult || removedAnswers.includes(answerIndex)) return;
@@ -94,7 +111,10 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
     
     const toRemove = incorrectAnswers.sort(() => 0.5 - Math.random()).slice(0, 2);
     setRemovedAnswers(toRemove);
-    setLifelines({ ...lifelines, fiftyFifty: false });
+    
+    if (!infiniteHints) {
+      setLifelines({ ...lifelines, fiftyFifty: false });
+    }
     toast.success('50/50 использовано!');
   };
 
@@ -104,7 +124,10 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
     const confidence = Math.random() > 0.3 ? 'уверен' : 'думаю';
     const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
     toast.success(`Друг ${confidence}, что правильный ответ: ${answerLabel}`);
-    setLifelines({ ...lifelines, phoneCall: false });
+    
+    if (!infiniteHints) {
+      setLifelines({ ...lifelines, phoneCall: false });
+    }
   };
 
   const handleAudienceHelp = () => {
@@ -113,7 +136,10 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
     const percentage = 55 + Math.floor(Math.random() * 30);
     const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
     toast.success(`${percentage}% зрителей выбрали ответ ${answerLabel}`);
-    setLifelines({ ...lifelines, audienceHelp: false });
+    
+    if (!infiniteHints) {
+      setLifelines({ ...lifelines, audienceHelp: false });
+    }
   };
 
   const resetGame = () => {
@@ -209,12 +235,20 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
               <Icon name="CircleDollarSign" size={48} className="text-gold" />
               {gameTitle}
             </h1>
-            {godMode && (
-              <div className="flex items-center gap-2 text-gold text-sm font-medium mt-2">
-                <Icon name="Crown" size={16} />
-                Режим Бога активен
-              </div>
-            )}
+            <div className="flex items-center gap-4 mt-2">
+              {godMode && (
+                <div className="flex items-center gap-2 text-gold text-sm font-medium">
+                  <Icon name="Crown" size={16} />
+                  Режим Бога
+                </div>
+              )}
+              {infiniteHints && (
+                <div className="flex items-center gap-2 text-secondary text-sm font-medium">
+                  <Icon name="Sparkles" size={16} />
+                  Бесконечные подсказки
+                </div>
+              )}
+            </div>
           </div>
           <Button 
             onClick={onOpenSettings}
@@ -249,7 +283,8 @@ export default function GameScreen({ questions, godMode, gameTitle, onOpenSettin
                     key={index}
                     onClick={() => handleAnswerClick(index)}
                     disabled={showResult || removedAnswers.includes(index)}
-                    className={getAnswerClass(index)}
+                    className={`${getAnswerClass(index)} transition-all duration-500 ${!visibleAnswers[index] ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}
+                    style={{ transitionDelay: `${index * 100}ms` }}
                   >
                     <span className="font-display font-bold mr-3 text-gold">
                       {['A', 'B', 'C', 'D'][index]}:

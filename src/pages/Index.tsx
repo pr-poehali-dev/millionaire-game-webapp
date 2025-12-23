@@ -115,6 +115,7 @@ export default function Index() {
   const [screen, setScreen] = useState<'game' | 'settings'>('game');
   const [questions, setQuestions] = useState<Question[]>(defaultQuestions);
   const [godMode, setGodMode] = useState(false);
+  const [infiniteHints, setInfiniteHints] = useState(false);
   const [gameTitle, setGameTitle] = useState('Кто хочет стать миллионером?');
 
   return (
@@ -123,6 +124,7 @@ export default function Index() {
         <GameScreen 
           questions={questions}
           godMode={godMode}
+          infiniteHints={infiniteHints}
           gameTitle={gameTitle}
           onOpenSettings={() => setScreen('settings')}
         />
@@ -130,9 +132,11 @@ export default function Index() {
         <SettingsScreen
           questions={questions}
           godMode={godMode}
+          infiniteHints={infiniteHints}
           gameTitle={gameTitle}
           onQuestionsChange={setQuestions}
           onGodModeChange={setGodMode}
+          onInfiniteHintsChange={setInfiniteHints}
           onGameTitleChange={setGameTitle}
           onBack={() => setScreen('game')}
         />
