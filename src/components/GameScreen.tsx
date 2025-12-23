@@ -92,7 +92,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
             newVisible[index] = true;
             return newVisible;
           });
-        }, index * 1000)
+        }, 2500 + (index * 1000))
       );
       
       return () => {
