@@ -121,7 +121,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
             toast.success('🎉 Поздравляем! Вы выиграли миллион!');
           }
         }
-      }, 2000);
+      }, 10000);
     } else {
       if (audioFiles.wrongAnswer) {
         new Audio(audioFiles.wrongAnswer).play().catch(() => {});
