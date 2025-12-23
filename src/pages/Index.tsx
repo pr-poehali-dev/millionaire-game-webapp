@@ -119,6 +119,7 @@ export default function Index() {
   const [infiniteHints, setInfiniteHints] = useState(false);
   const [gameTitle, setGameTitle] = useState('Кто хочет стать самым кумным?');
   const [audioFiles, setAudioFiles] = useState<AudioFiles>({});
+  const [typewriterSpeed, setTypewriterSpeed] = useState(0.5);
 
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -167,6 +168,7 @@ export default function Index() {
           currentAudioRef={currentAudioRef}
           playAudio={playAudio}
           stopAllAudio={stopAllAudio}
+          typewriterSpeed={typewriterSpeed}
           onOpenSettings={() => setScreen('settings')}
           onBackToMenu={() => setScreen('menu')}
         />
@@ -177,11 +179,13 @@ export default function Index() {
           infiniteHints={infiniteHints}
           gameTitle={gameTitle}
           audioFiles={audioFiles}
+          typewriterSpeed={typewriterSpeed}
           onQuestionsChange={setQuestions}
           onGodModeChange={setGodMode}
           onInfiniteHintsChange={setInfiniteHints}
           onGameTitleChange={setGameTitle}
           onAudioFilesChange={setAudioFiles}
+          onTypewriterSpeedChange={setTypewriterSpeed}
           onBack={() => setScreen('menu')}
         />
       )}

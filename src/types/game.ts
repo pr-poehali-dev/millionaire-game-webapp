@@ -28,4 +28,5 @@ export interface AudioFiles {
   questionTheme?: string;
   answerSelected?: string;
   menuTheme?: string;
+  finalQuestionTheme?: string;
 }

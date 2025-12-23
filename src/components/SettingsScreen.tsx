@@ -15,11 +15,13 @@ interface SettingsScreenProps {
   infiniteHints: boolean;
   gameTitle: string;
   audioFiles: AudioFiles;
+  typewriterSpeed: number;
   onQuestionsChange: (questions: Question[]) => void;
   onGodModeChange: (enabled: boolean) => void;
   onInfiniteHintsChange: (enabled: boolean) => void;
   onGameTitleChange: (title: string) => void;
   onAudioFilesChange: (files: AudioFiles) => void;
+  onTypewriterSpeedChange: (speed: number) => void;
   onBack: () => void;
 }
 
@@ -29,11 +31,13 @@ export default function SettingsScreen({
   infiniteHints,
   gameTitle,
   audioFiles,
+  typewriterSpeed,
   onQuestionsChange,
   onGodModeChange,
   onInfiniteHintsChange,
   onGameTitleChange,
   onAudioFilesChange,
+  onTypewriterSpeedChange,
   onBack
 }: SettingsScreenProps) {
   const [editingQuestions, setEditingQuestions] = useState<Question[]>(questions);
@@ -94,7 +98,8 @@ export default function SettingsScreen({
       fiftyFifty: '50:50',
       questionTheme: 'Фоновая музыка вопроса',
       answerSelected: 'Выбор ответа',
-      menuTheme: 'Музыка меню'
+      menuTheme: 'Музыка меню',
+      finalQuestionTheme: 'Музыка 15-го вопроса'
     };
     return labels[key] || key;
   };
@@ -186,7 +191,7 @@ export default function SettingsScreen({
               Звуковое оформление
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
-              {(['wrongAnswer', 'correctAnswer', 'phoneCall', 'fiftyFifty', 'questionTheme', 'answerSelected', 'menuTheme'] as Array<keyof AudioFiles>).map((key) => (
+              {(['wrongAnswer', 'correctAnswer', 'phoneCall', 'fiftyFifty', 'questionTheme', 'answerSelected', 'menuTheme', 'finalQuestionTheme'] as Array<keyof AudioFiles>).map((key) => (
                 <div key={key} className="space-y-2">
                   <Label htmlFor={`audio-${key}`} className="text-foreground flex items-center gap-2">
                     <Icon name="Volume2" size={16} className="text-muted-foreground" />
@@ -218,6 +223,34 @@ export default function SettingsScreen({
                   </div>
                 </div>
               ))}
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-card/95 backdrop-blur animate-fade-in">
+            <h2 className="text-xl font-display font-semibold text-foreground mb-6 flex items-center gap-2">
+              <Icon name="Clock" size={24} className="text-primary" />
+              Эффект печатной машинки (15-ый вопрос)
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <Label className="text-foreground flex items-center gap-2 mb-2">
+                  <Icon name="Timer" size={16} className="text-muted-foreground" />
+                  Скорость появления одного слова: {typewriterSpeed} сек
+                </Label>
+                <Input
+                  type="range"
+                  min="0.1"
+                  max="2"
+                  step="0.1"
+                  value={typewriterSpeed}
+                  onChange={(e) => onTypewriterSpeedChange(parseFloat(e.target.value))}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                  <span>Быстро (0.1с)</span>
+                  <span>Медленно (2с)</span>
+                </div>
+              </div>
             </div>
           </Card>
 

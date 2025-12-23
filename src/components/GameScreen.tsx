@@ -14,11 +14,12 @@ interface GameScreenProps {
   currentAudioRef: MutableRefObject<HTMLAudioElement | null>;
   playAudio: (audioUrl: string, loop?: boolean) => void;
   stopAllAudio: () => void;
+  typewriterSpeed: number;
   onOpenSettings: () => void;
   onBackToMenu: () => void;
 }
 
-export default function GameScreen({ questions, godMode, infiniteHints, gameTitle, audioFiles, currentAudioRef, playAudio, stopAllAudio, onOpenSettings, onBackToMenu }: GameScreenProps) {
+export default function GameScreen({ questions, godMode, infiniteHints, gameTitle, audioFiles, currentAudioRef, playAudio, stopAllAudio, typewriterSpeed, onOpenSettings, onBackToMenu }: GameScreenProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -36,6 +37,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
   const [removedAnswers, setRemovedAnswers] = useState<number[]>([]);
   const [visibleAnswers, setVisibleAnswers] = useState<boolean[]>([false, false, false, false]);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [typewriterText, setTypewriterText] = useState('');
 
   const currentQuestion = questions[currentQuestionIndex];
   const prizeList = questions.map(q => q.prize);
@@ -44,25 +46,60 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     setVisibleAnswers([false, false, false, false]);
     setSelectedAnswer(null);
     setAwaitingConfirmation(false);
+    setTypewriterText('');
     
-    if (audioFiles.questionTheme) {
+    const isFinalQuestion = currentQuestionIndex === questions.length - 1;
+    
+    if (isFinalQuestion && audioFiles.finalQuestionTheme) {
+      playAudio(audioFiles.finalQuestionTheme, true);
+    } else if (audioFiles.questionTheme) {
       playAudio(audioFiles.questionTheme, true);
     }
     
-    const timers = currentQuestion.answers.map((_, index) => 
-      setTimeout(() => {
-        setVisibleAnswers(prev => {
-          const newVisible = [...prev];
-          newVisible[index] = true;
-          return newVisible;
-        });
-      }, index * 1000)
-    );
-    
-    return () => {
-      timers.forEach(timer => clearTimeout(timer));
-    };
-  }, [currentQuestionIndex, currentQuestion, audioFiles.questionTheme]);
+    if (isFinalQuestion) {
+      const words = currentQuestion.question.split(' ');
+      let wordIndex = 0;
+      
+      const typewriterInterval = setInterval(() => {
+        if (wordIndex < words.length) {
+          setTypewriterText(words.slice(0, wordIndex + 1).join(' '));
+          wordIndex++;
+        } else {
+          clearInterval(typewriterInterval);
+        }
+      }, typewriterSpeed * 1000);
+      
+      const timers = currentQuestion.answers.map((_, index) => 
+        setTimeout(() => {
+          setVisibleAnswers(prev => {
+            const newVisible = [...prev];
+            newVisible[index] = true;
+            return newVisible;
+          });
+        }, (words.length * typewriterSpeed * 1000) + (index * 1000))
+      );
+      
+      return () => {
+        clearInterval(typewriterInterval);
+        timers.forEach(timer => clearTimeout(timer));
+      };
+    } else {
+      setTypewriterText(currentQuestion.question);
+      const timers = currentQuestion.answers.map((_, index) => 
+        setTimeout(() => {
+          setVisibleAnswers(prev => {
+            const newVisible = [...prev];
+            newVisible[index] = true;
+            return newVisible;
+          });
+        }, index * 1000)
+      );
+      
+      return () => {
+        timers.forEach(timer => clearTimeout(timer));
+      };
+    }
+  }, [currentQuestionIndex, currentQuestion, audioFiles.questionTheme, audioFiles.finalQuestionTheme, typewriterSpeed, questions.length]);
 
   const handleAnswerClick = (answerIndex: number) => {
     if (showResult || removedAnswers.includes(answerIndex) || awaitingConfirmation) return;
@@ -301,8 +338,11 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
                 </span>
               </div>
               
-              <h2 className="text-2xl md:text-3xl font-display font-semibold mb-8 text-foreground">
-                {currentQuestion.question}
+              <h2 className="text-2xl md:text-3xl font-display font-semibold mb-8 text-foreground min-h-[4rem]">
+                {typewriterText}
+                {currentQuestionIndex === questions.length - 1 && typewriterText !== currentQuestion.question && (
+                  <span className="animate-pulse">|</span>
+                )}
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
