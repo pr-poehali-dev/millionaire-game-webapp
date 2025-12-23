@@ -51,9 +51,9 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     const isFinalQuestion = currentQuestionIndex === questions.length - 1;
     
     if (isFinalQuestion && audioFiles.finalQuestionTheme) {
-      playAudio(audioFiles.finalQuestionTheme, true);
+      setTimeout(() => playAudio(audioFiles.finalQuestionTheme, true), 100);
     } else if (audioFiles.questionTheme) {
-      playAudio(audioFiles.questionTheme, true);
+      setTimeout(() => playAudio(audioFiles.questionTheme, true), 100);
     }
     
     if (isFinalQuestion) {
@@ -102,7 +102,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
   }, [currentQuestionIndex, currentQuestion, audioFiles.questionTheme, audioFiles.finalQuestionTheme, typewriterSpeed, questions.length]);
 
   const handleAnswerClick = (answerIndex: number) => {
-    if (showResult || removedAnswers.includes(answerIndex) || awaitingConfirmation) return;
+    if (showResult || removedAnswers.includes(answerIndex)) return;
     
     setSelectedAnswer(answerIndex);
     setAwaitingConfirmation(true);
@@ -330,9 +330,33 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
           <div className="space-y-6">
             <Card className="p-6 bg-card/95 backdrop-blur animate-fade-in">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-muted-foreground">
-                  Вопрос {currentQuestionIndex + 1} из {questions.length}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Вопрос {currentQuestionIndex + 1} из {questions.length}
+                  </span>
+                  <select
+                    value={currentQuestionIndex}
+                    onChange={(e) => {
+                      const newIndex = parseInt(e.target.value);
+                      if (newIndex > currentQuestionIndex) {
+                        setTotalWinnings(questions[newIndex - 1]?.prize || 0);
+                        if (newIndex > 4) setGuaranteedWinnings(questions[4].prize);
+                        if (newIndex > 9) setGuaranteedWinnings(questions[9].prize);
+                      }
+                      setCurrentQuestionIndex(newIndex);
+                      setSelectedAnswer(null);
+                      setShowResult(false);
+                      setRemovedAnswers([]);
+                    }}
+                    className="text-xs px-2 py-1 rounded bg-card border border-border text-foreground cursor-pointer hover:bg-primary/10"
+                  >
+                    {questions.map((_, idx) => (
+                      <option key={idx} value={idx}>
+                        #{idx + 1}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <span className="text-lg font-display font-bold text-gold">
                   {currentQuestion.prize.toLocaleString()} ₽
                 </span>
