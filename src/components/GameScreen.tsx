@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, MutableRefObject } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
-import { Question, Lifeline } from '@/types/game';
+import { Question, Lifeline, AudioFiles } from '@/types/game';
 import { toast } from 'sonner';
 
 interface GameScreenProps {
@@ -10,10 +10,13 @@ interface GameScreenProps {
   godMode: boolean;
   infiniteHints: boolean;
   gameTitle: string;
+  audioFiles: AudioFiles;
+  questionAudioRef: MutableRefObject<HTMLAudioElement | null>;
   onOpenSettings: () => void;
+  onBackToMenu: () => void;
 }
 
-export default function GameScreen({ questions, godMode, infiniteHints, gameTitle, onOpenSettings }: GameScreenProps) {
+export default function GameScreen({ questions, godMode, infiniteHints, gameTitle, audioFiles, questionAudioRef, onOpenSettings, onBackToMenu }: GameScreenProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -30,12 +33,22 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
   
   const [removedAnswers, setRemovedAnswers] = useState<number[]>([]);
   const [visibleAnswers, setVisibleAnswers] = useState<boolean[]>([false, false, false, false]);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
 
   const currentQuestion = questions[currentQuestionIndex];
   const prizeList = questions.map(q => q.prize);
 
   useEffect(() => {
     setVisibleAnswers([false, false, false, false]);
+    setSelectedAnswer(null);
+    setAwaitingConfirmation(false);
+    
+    if (audioFiles.questionTheme) {
+      questionAudioRef.current = new Audio(audioFiles.questionTheme);
+      questionAudioRef.current.loop = true;
+      questionAudioRef.current.play().catch(() => {});
+    }
+    
     const timers = currentQuestion.answers.map((_, index) => 
       setTimeout(() => {
         setVisibleAnswers(prev => {
@@ -46,18 +59,43 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
       }, index * 1000)
     );
     
-    return () => timers.forEach(timer => clearTimeout(timer));
-  }, [currentQuestionIndex, currentQuestion]);
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+      if (questionAudioRef.current) {
+        questionAudioRef.current.pause();
+        questionAudioRef.current = null;
+      }
+    };
+  }, [currentQuestionIndex, currentQuestion, audioFiles.questionTheme, questionAudioRef]);
 
   const handleAnswerClick = (answerIndex: number) => {
-    if (showResult || removedAnswers.includes(answerIndex)) return;
+    if (showResult || removedAnswers.includes(answerIndex) || awaitingConfirmation) return;
     
     setSelectedAnswer(answerIndex);
+    setAwaitingConfirmation(true);
+    
+    if (audioFiles.answerSelected) {
+      new Audio(audioFiles.answerSelected).play().catch(() => {});
+    }
+    
+    if (questionAudioRef.current) {
+      questionAudioRef.current.pause();
+    }
+  };
+
+  const handleConfirmAnswer = () => {
+    if (!awaitingConfirmation || selectedAnswer === null) return;
+    
+    setAwaitingConfirmation(false);
     setShowResult(true);
-    const correct = answerIndex === currentQuestion.correctAnswer;
+    const correct = selectedAnswer === currentQuestion.correctAnswer;
     setIsCorrect(correct);
 
     if (correct) {
+      if (audioFiles.correctAnswer) {
+        new Audio(audioFiles.correctAnswer).play().catch(() => {});
+      }
+      
       setTotalWinnings(currentQuestion.prize);
       
       if (currentQuestion.congratulation) {
@@ -85,6 +123,10 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
         }
       }, 2000);
     } else {
+      if (audioFiles.wrongAnswer) {
+        new Audio(audioFiles.wrongAnswer).play().catch(() => {});
+      }
+      
       if (godMode) {
         toast.info('Режим Бога: игра продолжается!');
         setTimeout(() => {
@@ -105,6 +147,10 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
   const handleFiftyFifty = () => {
     if (!lifelines.fiftyFifty || showResult) return;
     
+    if (audioFiles.fiftyFifty) {
+      new Audio(audioFiles.fiftyFifty).play().catch(() => {});
+    }
+    
     const incorrectAnswers = currentQuestion.answers
       .map((_, index) => index)
       .filter(index => index !== currentQuestion.correctAnswer);
@@ -120,6 +166,10 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
 
   const handlePhoneCall = () => {
     if (!lifelines.phoneCall || showResult) return;
+    
+    if (audioFiles.phoneCall) {
+      new Audio(audioFiles.phoneCall).play().catch(() => {});
+    }
     
     const confidence = Math.random() > 0.3 ? 'уверен' : 'думаю';
     const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
@@ -151,6 +201,8 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     setGuaranteedWinnings(0);
     setLifelines({ fiftyFifty: true, phoneCall: true, audienceHelp: true });
     setRemovedAnswers([]);
+    setAwaitingConfirmation(false);
+    onBackToMenu();
   };
 
   const getAnswerClass = (index: number) => {
@@ -293,6 +345,19 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
                   </button>
                 ))}
               </div>
+
+              {awaitingConfirmation && selectedAnswer !== null && (
+                <div className="mt-6 flex justify-center animate-fade-in">
+                  <Button
+                    onClick={handleConfirmAnswer}
+                    size="lg"
+                    className="font-display text-xl px-8 py-6 bg-gold text-gold-foreground hover:bg-gold/90 animate-pulse-glow"
+                  >
+                    <Icon name="Check" size={28} className="mr-2" />
+                    Подтвердить ответ
+                  </Button>
+                </div>
+              )}
             </Card>
 
             <Card className="p-6 bg-card/95 backdrop-blur">

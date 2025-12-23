@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import Icon from '@/components/ui/icon';
-import { Question } from '@/types/game';
+import { Question, AudioFiles } from '@/types/game';
 import { toast } from 'sonner';
 
 interface SettingsScreenProps {
@@ -14,10 +14,12 @@ interface SettingsScreenProps {
   godMode: boolean;
   infiniteHints: boolean;
   gameTitle: string;
+  audioFiles: AudioFiles;
   onQuestionsChange: (questions: Question[]) => void;
   onGodModeChange: (enabled: boolean) => void;
   onInfiniteHintsChange: (enabled: boolean) => void;
   onGameTitleChange: (title: string) => void;
+  onAudioFilesChange: (files: AudioFiles) => void;
   onBack: () => void;
 }
 
@@ -26,10 +28,12 @@ export default function SettingsScreen({
   godMode,
   infiniteHints,
   gameTitle,
+  audioFiles,
   onQuestionsChange,
   onGodModeChange,
   onInfiniteHintsChange,
   onGameTitleChange,
+  onAudioFilesChange,
   onBack
 }: SettingsScreenProps) {
   const [editingQuestions, setEditingQuestions] = useState<Question[]>(questions);
@@ -74,6 +78,25 @@ export default function SettingsScreen({
     if (editingIndex === index) {
       setEditingIndex(null);
     }
+  };
+
+  const handleAudioUpload = (key: keyof AudioFiles, file: File) => {
+    const url = URL.createObjectURL(file);
+    onAudioFilesChange({ ...audioFiles, [key]: url });
+    toast.success(`Аудио для "${getAudioLabel(key)}" загружено!`);
+  };
+
+  const getAudioLabel = (key: keyof AudioFiles): string => {
+    const labels = {
+      wrongAnswer: 'Неправильный ответ',
+      correctAnswer: 'Правильный ответ',
+      phoneCall: 'Звонок другу',
+      fiftyFifty: '50:50',
+      questionTheme: 'Фоновая музыка вопроса',
+      answerSelected: 'Выбор ответа',
+      menuTheme: 'Музыка меню'
+    };
+    return labels[key] || key;
   };
 
   const saveChanges = () => {
@@ -154,6 +177,47 @@ export default function SettingsScreen({
                   className="data-[state=checked]:bg-secondary"
                 />
               </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 bg-card/95 backdrop-blur animate-fade-in">
+            <h2 className="text-xl font-display font-semibold text-foreground mb-6 flex items-center gap-2">
+              <Icon name="Music" size={24} className="text-primary" />
+              Звуковое оформление
+            </h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {(['wrongAnswer', 'correctAnswer', 'phoneCall', 'fiftyFifty', 'questionTheme', 'answerSelected', 'menuTheme'] as Array<keyof AudioFiles>).map((key) => (
+                <div key={key} className="space-y-2">
+                  <Label htmlFor={`audio-${key}`} className="text-foreground flex items-center gap-2">
+                    <Icon name="Volume2" size={16} className="text-muted-foreground" />
+                    {getAudioLabel(key)}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id={`audio-${key}`}
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleAudioUpload(key, file);
+                      }}
+                      className="flex-1"
+                    />
+                    {audioFiles[key] && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const audio = new Audio(audioFiles[key]);
+                          audio.play().catch(() => {});
+                        }}
+                      >
+                        <Icon name="Play" size={16} />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
 

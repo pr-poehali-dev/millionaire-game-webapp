@@ -19,3 +19,13 @@ export interface Lifeline {
   phoneCall: boolean;
   audienceHelp: boolean;
 }
+
+export interface AudioFiles {
+  wrongAnswer?: string;
+  correctAnswer?: string;
+  phoneCall?: string;
+  fiftyFifty?: string;
+  questionTheme?: string;
+  answerSelected?: string;
+  menuTheme?: string;
+}
