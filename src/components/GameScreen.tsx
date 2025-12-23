@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { Question, Lifeline, AudioFiles } from '@/types/game';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 interface GameScreenProps {
   questions: Question[];
@@ -244,15 +245,25 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
   };
 
   if (gameOver) {
+    if (totalWinnings === questions[questions.length - 1].prize) {
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+      }, 200);
+    }
+
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full p-8 text-center bg-card/95 backdrop-blur animate-fade-in">
           <div className="mb-6">
             {totalWinnings === questions[questions.length - 1].prize ? (
               <>
-                <Icon name="Trophy" size={80} className="mx-auto mb-4 text-gold animate-pulse-glow" />
+                <Icon name="Heart" size={80} className="mx-auto mb-4 text-gold animate-pulse-glow" />
                 <h1 className="text-4xl font-display font-bold text-gold mb-2">
-                  🎉 Поздравляем! 🎉
+                  💍🎉 Поздравляем! 🎉💍
                 </h1>
                 <p className="text-2xl text-foreground">Вы выиграли миллион!</p>
               </>
@@ -411,11 +422,32 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
                         setShowResult(false);
                         setRemovedAnswers([]);
                       } else {
+                        const duration = 3000;
+                        const animationEnd = Date.now() + duration;
+                        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+                        const randomInRange = (min: number, max: number) => {
+                          return Math.random() * (max - min) + min;
+                        };
+
+                        const interval: NodeJS.Timeout = setInterval(() => {
+                          const timeLeft = animationEnd - Date.now();
+
+                          if (timeLeft <= 0) {
+                            clearInterval(interval);
+                            return;
+                          }
+
+                          const particleCount = 50 * (timeLeft / duration);
+                          confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                          confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+                        }, 250);
+
                         setGameOver(true);
                         if (currentQuestion.congratulation) {
                           toast.success(currentQuestion.congratulation, { duration: 5000 });
                         } else {
-                          toast.success('🎉 Поздравляем! Вы выиграли миллион!');
+                          toast.success('💍🎉 Поздравляем! Вы выиграли миллион! 🎉💍');
                         }
                       }
                     }}
