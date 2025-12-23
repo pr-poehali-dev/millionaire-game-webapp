@@ -8,10 +8,11 @@ import { toast } from 'sonner';
 interface GameScreenProps {
   questions: Question[];
   godMode: boolean;
+  gameTitle: string;
   onOpenSettings: () => void;
 }
 
-export default function GameScreen({ questions, godMode, onOpenSettings }: GameScreenProps) {
+export default function GameScreen({ questions, godMode, gameTitle, onOpenSettings }: GameScreenProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -206,7 +207,7 @@ export default function GameScreen({ questions, godMode, onOpenSettings }: GameS
           <div className="flex-1">
             <h1 className="text-3xl md:text-5xl font-display font-bold text-primary mb-2 flex items-center gap-3">
               <Icon name="CircleDollarSign" size={48} className="text-gold" />
-              Кто хочет стать миллионером?
+              {gameTitle}
             </h1>
             {godMode && (
               <div className="flex items-center gap-2 text-gold text-sm font-medium mt-2">

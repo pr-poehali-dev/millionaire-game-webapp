@@ -12,20 +12,25 @@ import { toast } from 'sonner';
 interface SettingsScreenProps {
   questions: Question[];
   godMode: boolean;
+  gameTitle: string;
   onQuestionsChange: (questions: Question[]) => void;
   onGodModeChange: (enabled: boolean) => void;
+  onGameTitleChange: (title: string) => void;
   onBack: () => void;
 }
 
 export default function SettingsScreen({
   questions,
   godMode,
+  gameTitle,
   onQuestionsChange,
   onGodModeChange,
+  onGameTitleChange,
   onBack
 }: SettingsScreenProps) {
   const [editingQuestions, setEditingQuestions] = useState<Question[]>(questions);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editingTitle, setEditingTitle] = useState<string>(gameTitle);
 
   const handleQuestionChange = (index: number, field: keyof Question, value: any) => {
     const updated = [...editingQuestions];
@@ -69,12 +74,14 @@ export default function SettingsScreen({
 
   const saveChanges = () => {
     onQuestionsChange(editingQuestions);
+    onGameTitleChange(editingTitle);
     toast.success('Настройки сохранены!');
     onBack();
   };
 
   const cancelChanges = () => {
     setEditingQuestions(questions);
+    setEditingTitle(gameTitle);
     onBack();
   };
 
@@ -93,6 +100,21 @@ export default function SettingsScreen({
         </div>
 
         <div className="space-y-6">
+          <Card className="p-6 bg-card/95 backdrop-blur animate-fade-in">
+            <div className="mb-6">
+              <h2 className="text-xl font-display font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Icon name="Type" size={24} className="text-primary" />
+                Название игры
+              </h2>
+              <Input
+                value={editingTitle}
+                onChange={(e) => setEditingTitle(e.target.value)}
+                placeholder="Введите название игры"
+                className="text-lg font-display font-semibold"
+              />
+            </div>
+          </Card>
+
           <Card className="p-6 bg-card/95 backdrop-blur animate-fade-in">
             <div className="flex items-center justify-between">
               <div className="flex-1">
