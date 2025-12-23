@@ -120,23 +120,32 @@ export default function Index() {
   const [gameTitle, setGameTitle] = useState('Кто хочет стать самым кумным?');
   const [audioFiles, setAudioFiles] = useState<AudioFiles>({});
 
-  const menuAudioRef = useRef<HTMLAudioElement | null>(null);
-  const questionAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const stopAllAudio = () => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current.currentTime = 0;
+      currentAudioRef.current = null;
+    }
+  };
+
+  const playAudio = (audioUrl: string, loop: boolean = false) => {
+    stopAllAudio();
+    currentAudioRef.current = new Audio(audioUrl);
+    currentAudioRef.current.loop = loop;
+    currentAudioRef.current.play().catch(() => {});
+  };
 
   useEffect(() => {
+    stopAllAudio();
+    
     if (screen === 'menu' && audioFiles.menuTheme) {
-      menuAudioRef.current = new Audio(audioFiles.menuTheme);
-      menuAudioRef.current.loop = true;
-      menuAudioRef.current.play().catch(() => {});
-    } else if (menuAudioRef.current) {
-      menuAudioRef.current.pause();
-      menuAudioRef.current = null;
+      playAudio(audioFiles.menuTheme, true);
     }
 
     return () => {
-      if (menuAudioRef.current) {
-        menuAudioRef.current.pause();
-      }
+      stopAllAudio();
     };
   }, [screen, audioFiles.menuTheme]);
 
@@ -155,7 +164,9 @@ export default function Index() {
           infiniteHints={infiniteHints}
           gameTitle={gameTitle}
           audioFiles={audioFiles}
-          questionAudioRef={questionAudioRef}
+          currentAudioRef={currentAudioRef}
+          playAudio={playAudio}
+          stopAllAudio={stopAllAudio}
           onOpenSettings={() => setScreen('settings')}
           onBackToMenu={() => setScreen('menu')}
         />

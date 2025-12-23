@@ -11,12 +11,14 @@ interface GameScreenProps {
   infiniteHints: boolean;
   gameTitle: string;
   audioFiles: AudioFiles;
-  questionAudioRef: MutableRefObject<HTMLAudioElement | null>;
+  currentAudioRef: MutableRefObject<HTMLAudioElement | null>;
+  playAudio: (audioUrl: string, loop?: boolean) => void;
+  stopAllAudio: () => void;
   onOpenSettings: () => void;
   onBackToMenu: () => void;
 }
 
-export default function GameScreen({ questions, godMode, infiniteHints, gameTitle, audioFiles, questionAudioRef, onOpenSettings, onBackToMenu }: GameScreenProps) {
+export default function GameScreen({ questions, godMode, infiniteHints, gameTitle, audioFiles, currentAudioRef, playAudio, stopAllAudio, onOpenSettings, onBackToMenu }: GameScreenProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
@@ -44,9 +46,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     setAwaitingConfirmation(false);
     
     if (audioFiles.questionTheme) {
-      questionAudioRef.current = new Audio(audioFiles.questionTheme);
-      questionAudioRef.current.loop = true;
-      questionAudioRef.current.play().catch(() => {});
+      playAudio(audioFiles.questionTheme, true);
     }
     
     const timers = currentQuestion.answers.map((_, index) => 
@@ -61,12 +61,8 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     
     return () => {
       timers.forEach(timer => clearTimeout(timer));
-      if (questionAudioRef.current) {
-        questionAudioRef.current.pause();
-        questionAudioRef.current = null;
-      }
     };
-  }, [currentQuestionIndex, currentQuestion, audioFiles.questionTheme, questionAudioRef]);
+  }, [currentQuestionIndex, currentQuestion, audioFiles.questionTheme]);
 
   const handleAnswerClick = (answerIndex: number) => {
     if (showResult || removedAnswers.includes(answerIndex) || awaitingConfirmation) return;
@@ -75,11 +71,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     setAwaitingConfirmation(true);
     
     if (audioFiles.answerSelected) {
-      new Audio(audioFiles.answerSelected).play().catch(() => {});
-    }
-    
-    if (questionAudioRef.current) {
-      questionAudioRef.current.pause();
+      playAudio(audioFiles.answerSelected);
     }
   };
 
@@ -93,7 +85,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
 
     if (correct) {
       if (audioFiles.correctAnswer) {
-        new Audio(audioFiles.correctAnswer).play().catch(() => {});
+        playAudio(audioFiles.correctAnswer);
       }
       
       setTotalWinnings(currentQuestion.prize);
@@ -124,7 +116,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
       }, 10000);
     } else {
       if (audioFiles.wrongAnswer) {
-        new Audio(audioFiles.wrongAnswer).play().catch(() => {});
+        playAudio(audioFiles.wrongAnswer);
       }
       
       if (godMode) {
@@ -148,7 +140,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     if (!lifelines.fiftyFifty || showResult) return;
     
     if (audioFiles.fiftyFifty) {
-      new Audio(audioFiles.fiftyFifty).play().catch(() => {});
+      playAudio(audioFiles.fiftyFifty);
     }
     
     const incorrectAnswers = currentQuestion.answers
@@ -168,7 +160,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     if (!lifelines.phoneCall || showResult) return;
     
     if (audioFiles.phoneCall) {
-      new Audio(audioFiles.phoneCall).play().catch(() => {});
+      playAudio(audioFiles.phoneCall);
     }
     
     const confidence = Math.random() > 0.3 ? 'уверен' : 'думаю';
