@@ -147,6 +147,8 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
         setTimeout(() => {
           setSelectedAnswer(null);
           setShowResult(false);
+          setRemovedAnswers([]);
+          setAwaitingConfirmation(false);
         }, 1500);
       } else {
         setTimeout(() => {
@@ -420,7 +422,9 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
                         setCurrentQuestionIndex(currentQuestionIndex + 1);
                         setSelectedAnswer(null);
                         setShowResult(false);
+                        setIsCorrect(false);
                         setRemovedAnswers([]);
+                        setAwaitingConfirmation(false);
                       } else {
                         const duration = 3000;
                         const animationEnd = Date.now() + duration;
