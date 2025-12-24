@@ -263,9 +263,9 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
               <>
                 <Icon name="Heart" size={80} className="mx-auto mb-4 text-gold animate-pulse-glow" />
                 <h1 className="text-4xl font-display font-bold text-gold mb-2">
-                  💍🎉 Поздравляем! 🎉💍
+                  💍🎉 Я тебя люблю! 🎉💍
                 </h1>
-                <p className="text-2xl text-foreground">Вы выиграли миллион!</p>
+                <p className="text-2xl text-foreground">Ты выиграла миллион!</p>
               </>
             ) : (
               <>
@@ -447,7 +447,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
                         if (currentQuestion.congratulation) {
                           toast.success(currentQuestion.congratulation, { duration: 5000 });
                         } else {
-                          toast.success('💍🎉 Поздравляем! Вы выиграли миллион! 🎉💍');
+                          toast.success('💍🎉 Я тебя люблю! 🎉💍');
                         }
                       }
                     }}
