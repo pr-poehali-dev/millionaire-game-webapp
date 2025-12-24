@@ -84,12 +84,10 @@ export default function SettingsScreen({
     }
   };
 
-  const handleAudioFileSelect = (key: keyof AudioFiles, event: React.ChangeEvent<HTMLInputElement>) => {
-    const input = event.target.value;
-    if (input) {
-      onAudioFilesChange({ ...audioFiles, [key]: input });
-      toast.success(`Путь для "${getAudioLabel(key)}" установлен!`);
-    }
+  const handleAudioUpload = (key: keyof AudioFiles, file: File) => {
+    const url = URL.createObjectURL(file);
+    onAudioFilesChange({ ...audioFiles, [key]: url });
+    toast.success(`Аудио для "${getAudioLabel(key)}" загружено!`);
   };
 
   const getAudioLabel = (key: keyof AudioFiles): string => {
@@ -193,7 +191,7 @@ export default function SettingsScreen({
               Звуковое оформление
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
-              {(['menuTheme', 'questionTheme', 'finalQuestionTheme', 'correctAnswer', 'wrongAnswer', 'answerSelected', 'fiftyFifty', 'phoneCall'] as Array<keyof AudioFiles>).map((key) => (
+              {(['wrongAnswer', 'correctAnswer', 'phoneCall', 'fiftyFifty', 'questionTheme', 'answerSelected', 'menuTheme', 'finalQuestionTheme'] as Array<keyof AudioFiles>).map((key) => (
                 <div key={key} className="space-y-2">
                   <Label htmlFor={`audio-${key}`} className="text-foreground flex items-center gap-2">
                     <Icon name="Volume2" size={16} className="text-muted-foreground" />
@@ -202,11 +200,13 @@ export default function SettingsScreen({
                   <div className="flex gap-2">
                     <Input
                       id={`audio-${key}`}
-                      type="text"
-                      placeholder={`/audio/${key.replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '')}.mp3`}
-                      value={audioFiles[key] || ''}
-                      onChange={(e) => handleAudioFileSelect(key, e)}
-                      className="flex-1 font-mono text-sm"
+                      type="file"
+                      accept="audio/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleAudioUpload(key, file);
+                      }}
+                      className="flex-1"
                     />
                     {audioFiles[key] && (
                       <Button
@@ -214,7 +214,7 @@ export default function SettingsScreen({
                         size="sm"
                         onClick={() => {
                           const audio = new Audio(audioFiles[key]);
-                          audio.play().catch(() => toast.error('Не удалось воспроизвести аудио'));
+                          audio.play().catch(() => {});
                         }}
                       >
                         <Icon name="Play" size={16} />
