@@ -105,7 +105,7 @@ const defaultQuestions: Question[] = [
   },
   {
     id: 15,
-    question: 'Ты выйдешь за меня замуж ?)',
+    question: 'Ты выйдешь за меня ?)',
     answers: ['Да!', 'Да да да!', 'Да, конечно!', 'Даааа!!'],
     correctAnswer: -1,
     prize: 1000000
