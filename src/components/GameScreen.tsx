@@ -117,9 +117,8 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     
     setAwaitingConfirmation(false);
     setShowResult(true);
-    const isFinalQuestion = currentQuestionIndex === questions.length - 1;
     const allAnswersCorrect = currentQuestion.correctAnswer === -1;
-    const correct = isFinalQuestion ? true : (allAnswersCorrect || selectedAnswer === currentQuestion.correctAnswer);
+    const correct = allAnswersCorrect || selectedAnswer === currentQuestion.correctAnswer;
     setIsCorrect(correct);
 
     if (correct) {
@@ -238,7 +237,6 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
 
   const getAnswerClass = (index: number) => {
     const baseClass = 'w-full p-4 text-left text-lg font-medium transition-all duration-300 border-2 rounded-lg';
-    const isFinalQuestion = currentQuestionIndex === questions.length - 1;
     const allAnswersCorrect = currentQuestion.correctAnswer === -1;
     
     if (removedAnswers.includes(index)) {
@@ -246,7 +244,7 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     }
     
     if (showResult) {
-      if (isFinalQuestion || allAnswersCorrect || index === currentQuestion.correctAnswer) {
+      if (allAnswersCorrect || index === currentQuestion.correctAnswer) {
         return `${baseClass} bg-green-600 border-green-400 text-white animate-pulse-glow`;
       }
       if (index === selectedAnswer && !isCorrect) {
