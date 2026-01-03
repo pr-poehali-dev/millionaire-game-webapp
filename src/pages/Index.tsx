@@ -118,7 +118,7 @@ export default function Index() {
   const [questions, setQuestions] = useState<Question[]>(defaultQuestions);
   const [godMode, setGodMode] = useState(false);
   const [infiniteHints, setInfiniteHints] = useState(false);
-  const [gameTitle, setGameTitle] = useState('Кто хочет стать самым кумным?');
+  const [gameTitle, setGameTitle] = useState('Кто хочет стать миллионером?');
   const [audioFiles, setAudioFiles] = useState<AudioFiles>({});
   const [typewriterSpeed, setTypewriterSpeed] = useState(0.5);
 
