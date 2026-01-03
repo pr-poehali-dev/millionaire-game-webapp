@@ -5,6 +5,7 @@ export interface Question {
   correctAnswer: number;
   prize: number;
   congratulation?: string;
+  imageUrl?: string;
 }
 
 export interface GameState {

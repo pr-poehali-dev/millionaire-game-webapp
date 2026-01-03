@@ -118,7 +118,8 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
     setAwaitingConfirmation(false);
     setShowResult(true);
     const isFinalQuestion = currentQuestionIndex === questions.length - 1;
-    const correct = isFinalQuestion ? true : (selectedAnswer === currentQuestion.correctAnswer);
+    const allAnswersCorrect = currentQuestion.correctAnswer === -1;
+    const correct = isFinalQuestion ? true : (allAnswersCorrect || selectedAnswer === currentQuestion.correctAnswer);
     setIsCorrect(correct);
 
     if (correct) {
@@ -165,6 +166,14 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
       playAudio(audioFiles.fiftyFifty);
     }
     
+    if (currentQuestion.correctAnswer === -1) {
+      toast.info('В этом вопросе все ответы правильные!');
+      if (!infiniteHints) {
+        setLifelines({ ...lifelines, fiftyFifty: false });
+      }
+      return;
+    }
+    
     const incorrectAnswers = currentQuestion.answers
       .map((_, index) => index)
       .filter(index => index !== currentQuestion.correctAnswer);
@@ -185,9 +194,13 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
       playAudio(audioFiles.phoneCall);
     }
     
-    const confidence = Math.random() > 0.3 ? 'уверен' : 'думаю';
-    const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
-    toast.success(`Друг ${confidence}, что правильный ответ: ${answerLabel}`);
+    if (currentQuestion.correctAnswer === -1) {
+      toast.success('Друг говорит: "Тут все ответы правильные!"');
+    } else {
+      const confidence = Math.random() > 0.3 ? 'уверен' : 'думаю';
+      const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
+      toast.success(`Друг ${confidence}, что правильный ответ: ${answerLabel}`);
+    }
     
     if (!infiniteHints) {
       setLifelines({ ...lifelines, phoneCall: false });
@@ -197,9 +210,13 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
   const handleAudienceHelp = () => {
     if (!lifelines.audienceHelp || showResult) return;
     
-    const percentage = 55 + Math.floor(Math.random() * 30);
-    const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
-    toast.success(`${percentage}% зрителей выбрали ответ ${answerLabel}`);
+    if (currentQuestion.correctAnswer === -1) {
+      toast.success('Зрители разделились поровну - все ответы правильные!');
+    } else {
+      const percentage = 55 + Math.floor(Math.random() * 30);
+      const answerLabel = ['A', 'B', 'C', 'D'][currentQuestion.correctAnswer];
+      toast.success(`${percentage}% зрителей выбрали ответ ${answerLabel}`);
+    }
     
     if (!infiniteHints) {
       setLifelines({ ...lifelines, audienceHelp: false });
@@ -222,13 +239,14 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
   const getAnswerClass = (index: number) => {
     const baseClass = 'w-full p-4 text-left text-lg font-medium transition-all duration-300 border-2 rounded-lg';
     const isFinalQuestion = currentQuestionIndex === questions.length - 1;
+    const allAnswersCorrect = currentQuestion.correctAnswer === -1;
     
     if (removedAnswers.includes(index)) {
       return `${baseClass} opacity-30 cursor-not-allowed bg-muted/20 border-muted/30`;
     }
     
     if (showResult) {
-      if (isFinalQuestion || index === currentQuestion.correctAnswer) {
+      if (isFinalQuestion || allAnswersCorrect || index === currentQuestion.correctAnswer) {
         return `${baseClass} bg-green-600 border-green-400 text-white animate-pulse-glow`;
       }
       if (index === selectedAnswer && !isCorrect) {
@@ -370,6 +388,16 @@ export default function GameScreen({ questions, godMode, infiniteHints, gameTitl
                   <span className="animate-pulse">|</span>
                 )}
               </h2>
+
+              {currentQuestion.imageUrl && (
+                <div className="mb-8 flex justify-center">
+                  <img 
+                    src={currentQuestion.imageUrl} 
+                    alt="Question image" 
+                    className="max-w-full max-h-[400px] rounded-lg shadow-lg object-contain"
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {currentQuestion.answers.map((answer, index) => (

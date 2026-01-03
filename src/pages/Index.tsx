@@ -52,7 +52,8 @@ const defaultQuestions: Question[] = [
     question: 'Сколько стоит оригинальная эта сумка COACH?',
     answers: ['3000', '20000', '40000', '80000'],
     correctAnswer: -1,
-    prize: 4000
+    prize: 4000,
+    imageUrl: 'https://cdn.poehali.dev/files/сумка.png'
   },
   {
     id: 8,
